@@ -1,0 +1,47 @@
+
+╭─── Claude Code v2.1.68 ──────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Pavel!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ Recent activity         │
+│                        ▘▘ ▝▝                       │ No recent activity      │
+│                                                    │                         │
+│               Sonnet 4.6 · Claude Pro              │                         │
+│  /…/c/Users/1/Desktop/CODE/GO/ssh-transfer/sftp-go │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Я поднял ssh сервер на своюи ноутбук на win10(тот же с которого и пишу    
+  сейчас)                                                                   
+  Пользователь 1 пароль поставил mogged                                     
+  Но приложение @tui.go выдаёт ошибка:                                      
+  ✖ dial tcp 127.0.0.1:22: connect: connection refused                      
+  ⎿  Read tui.go (1088 lines)
+
+● Проблема в том, что ты запускаешь приложение из WSL2, а SSH-сервер стоит на
+  Windows. Из WSL2 127.0.0.1 указывает на саму WSL-машину, а не на Windows-хост.
+
+  Диагностика и решение:
+
+  1. Узнай IP Windows-хоста из WSL2:
+  cat /etc/resolv.conf | grep nameserver
+  Или:
+  ip route show default | awk '{print $3}'
+  Это даст IP вида 172.x.x.x — вот его и нужно вводить в поле "Хост".
+
+  2. Проверь, что OpenSSH Server на Windows действительно запущен (в PowerShell
+  от администратора):
+  Get-Service -Name sshd
+  Если Status не Running:
+  Start-Service sshd
+
+  3. Проверь порт (в PowerShell):
+  netstat -an | findstr :22
+  Должна быть строка 0.0.0.0:22 или :::22 в состоянии LISTENING.
+
+  4. Проверь firewall Windows (в PowerShell от администратора):
+  Get-NetFirewallRule -Name *ssh*
+
+  ---
+  Итог: скорее всего нужно просто поменять хост с 127.0.0.1 на IP из
+  /etc/resolv.conf (шаг 1).
